@@ -1,0 +1,157 @@
+C51 COMPILER V9.56.0.0   PART1                                                             10/01/2017 14:45:38 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE PART1
+OBJECT MODULE PLACED IN .\Objects\part1.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE part1.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\par
+                    -t1.lst) TABS(2) OBJECT(.\Objects\part1.obj)
+
+line level    source
+
+   1          #include <at89c5131.h>
+   2          #include <stdio.h>
+   3          #include <math.h>
+   4          //Keypad Connections
+   5          sbit R1 = P1^0;
+   6          sbit R2 = P1^1;
+   7          sbit R3 = P1^2;
+   8          sbit R4 = P1^3;
+   9          sbit C1 = P1^4;
+  10          sbit C2 = P1^5;
+  11          sbit C3 = P1^6;
+  12          sbit C4 = P1^7;
+  13          //End Keypad Connections
+  14          sbit output = P0^0;
+  15          //float freq_multiplier[12]={1.0,1.0667,1.1250,1.1852,1.2500,1.333,1.4220,1.500,1.600,1.6875,1.7778,1.8750
+             -};
+  16          float freq_multiplier=1.0;
+  17          float octave=1.0,base_freq,freq;
+  18          //char key = 0;
+  19          int i=0,ix=0;
+  20          float spi_out=0;
+  21          void Delay(int delay);
+  22          int press=0;
+  23          //function for reading keypad
+  24          void Read_Keypad()
+  25          {
+  26   1        C1=1;
+  27   1        C2=1;
+  28   1        C3=1;
+  29   1        C4=1;
+  30   1        R1=0;
+  31   1        R2=1;
+  32   1        R3=1;
+  33   1        R4=1;
+  34   1        if(C1==0){Delay(10);while(C1==0);freq_multiplier=1.0;press=1;}
+  35   1        if(C2==0){Delay(10);while(C2==0);freq_multiplier=1.0667;press=1;}
+  36   1        if(C3==0){Delay(10);while(C3==0);freq_multiplier=1.125;press=1;}
+  37   1        if(C4==0){Delay(10);while(C4==0);freq_multiplier=1.1852;press=1;}
+  38   1        R1=1;
+  39   1        R2=0;
+  40   1        R3=1;
+  41   1        R4=1;
+  42   1        if(C1==0){Delay(10);while(C1==0);freq_multiplier=1.25;press=1;}
+  43   1        if(C2==0){Delay(10);while(C2==0);freq_multiplier=1.3333;press=1;}
+  44   1        if(C3==0){Delay(10);while(C3==0);freq_multiplier=1.422;press=1;}
+  45   1        if(C4==0){Delay(10);while(C4==0);freq_multiplier= 1.5;press=1;}
+  46   1        R1=1;
+  47   1        R2=1;
+  48   1        R3=0;
+  49   1        R4=1;
+  50   1        if(C1==0){Delay(10);while(C1==0);freq_multiplier=1.6;press=1;}
+  51   1        if(C2==0){Delay(10);while(C2==0);freq_multiplier=1.6875;press=1;}
+  52   1        if(C3==0){Delay(10);while(C3==0);freq_multiplier=1.7778;press=1;}
+  53   1        if(C4==0){Delay(10);while(C4==0);freq_multiplier=1.875;press=1;}
+C51 COMPILER V9.56.0.0   PART1                                                             10/01/2017 14:45:38 PAGE 2   
+
+  54   1        R1=1;
+  55   1        R2=1;
+  56   1        R3=1;
+  57   1        R4=0;
+  58   1        if(C1==0){Delay(10);while(C1==0);octave=1.0;press=1;}
+  59   1        if(C2==0){Delay(10);while(C2==0);octave=2.0;press=1;}
+  60   1        if(C3==0){Delay(10);while(C3==0);octave=4.0;press=1;}
+  61   1        if(C4==0){Delay(10);while(C4==0);octave=8.0;press=1;}
+  62   1       
+  63   1      }
+  64          
+  65          // function for creating the look up table
+  66          float fillTable(int z)
+  67          {
+  68   1           return sin(2.0*3.1415927*(float)z/24.0);
+  69   1      }
+  70          
+  71          // funtion for signal output
+  72          void OutputTone(float freq)
+  73          {
+  74   1        int delay =0;
+  75   1        ix=10;
+  76   1        while(ix>0){
+  77   2          delay = (100000.0/freq);
+  78   2          output =1;
+  79   2          Delay(delay);
+  80   2          output =0;
+  81   2          Delay(delay);
+  82   2          ix--;
+  83   2        }
+  84   1      }
+  85          void OutputTone_Table(float freq)
+  86          {
+  87   1        int table_delay =0;
+  88   1        ix=10;
+  89   1        while(ix>0){
+  90   2          for(i=0;i<24;i++)
+  91   2          {
+  92   3            spi_out= fillTable(i);
+  93   3            table_delay = (int)100000.0/(24.0*freq);
+  94   3            Delay(table_delay);
+  95   3          }
+  96   2          ix--;
+  97   2        }
+  98   1      }
+  99          void main(void)
+ 100          {
+ 101   1        P0=0x00;
+ 102   1        P1=0xf0;
+ 103   1        output=0;
+ 104   1        base_freq = 1000.0;
+ 105   1        press=0;
+ 106   1        while(1)
+ 107   1        { 
+ 108   2          Read_Keypad();
+ 109   2          while(press==1)
+ 110   2          {
+ 111   3            Read_Keypad();
+ 112   3            freq= octave*base_freq*freq_multiplier;
+ 113   3            OutputTone_Table(freq);
+ 114   3          }
+ 115   2        }
+C51 COMPILER V9.56.0.0   PART1                                                             10/01/2017 14:45:38 PAGE 3   
+
+ 116   1        
+ 117   1      }
+ 118          
+ 119          //delay function
+ 120          void Delay(int delay)
+ 121          {
+ 122   1        int d=0;
+ 123   1        while(delay>0)
+ 124   1        {
+ 125   2          for(d=0;d<20;d++);
+ 126   2          delay--;
+ 127   2        }
+ 128   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    806    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     26      12
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,3 @@
+".\Objects\part1.obj" 
+TO ".\Objects\part1" 
+PRINT(".\Listings\part1.m51") RAMSIZE(256) 

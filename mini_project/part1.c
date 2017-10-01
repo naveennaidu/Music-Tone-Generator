@@ -101,7 +101,7 @@ void main(void)
 	P0=0x00;
 	P1=0xf0;
 	output=0;
-	base_freq = 220.0;
+	base_freq = 440.0;
 	press=0;
 	while(1)
 	{	
